@@ -1,0 +1,29 @@
+
+Fake News Detection Dataset EDA Summary
+========================================
+
+1. Dataset Overview:
+   - Total samples: 4986
+   - Features: 11
+   - Missing values: 0
+   - Duplicate rows: 237
+
+2. Label Distribution:
+label
+0    2972
+1    2014
+
+3. Text Statistics:
+   - Average text length: 3926.21 characters
+   - Average word count: 662.00 words
+   - Max text length: 100000 characters
+   - Min text length: 20 characters
+
+4. Key Observations:
+   - The dataset contains 2 classes
+   - Class balance ratio: 0.68
+
+5. Recommendations:
+   - Consider text preprocessing (lowercasing, removing special characters)
+   - May need to handle class imbalance if ratio < 0.8
+   - Recommended models: BERT, DistilBERT, RoBERTa

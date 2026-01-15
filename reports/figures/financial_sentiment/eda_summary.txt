@@ -1,0 +1,40 @@
+
+Financial News Sentiment Analysis Dataset EDA Summary
+=====================================================
+
+1. Dataset Overview:
+   - Total samples: 4845
+   - Features: 16
+   - Missing values: 0
+   - Duplicate rows: 6
+
+2. Sentiment Distribution:
+neutral
+neutral     2878
+positive    1363
+negative     604
+
+   Class Imbalance Ratio: 0.210
+   (Ratio < 0.5 indicates significant imbalance)
+
+3. Headline Statistics:
+   - Average length: 128.13 characters
+   - Average word count: 23.10 words
+   - Length range: 9 - 315 chars
+
+4. Key Observations:
+   - Dataset has 3 sentiment classes: positive, neutral, negative
+   - Neutral class is typically the majority (around 59%)
+   - Headlines are relatively short (good for BERT models)
+   - Clear class imbalance needs to be addressed
+
+5. Recommendations for Modeling:
+   - Use class weights or oversampling for imbalance
+   - Consider FinBERT (pre-trained on financial text)
+   - Headlines are short, so max_length=128 should suffice
+   - Use stratified train/test split
+
+6. Suggested Preprocessing:
+   - Lowercase text
+   - Remove special characters (optional)
+   - No stemming needed for transformer models

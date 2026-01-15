@@ -1,0 +1,44 @@
+
+KMNIST (Kuzushiji-MNIST) Dataset EDA Summary
+============================================
+
+1. Dataset Overview:
+   - Training samples: 60000
+   - Test samples: 10000
+   - Image size: 28 x 28 grayscale
+   - Number of classes: 10
+
+2. Class Information:
+   - Classes represent Japanese Hiragana characters
+   - Each class: one row of the Hiragana table
+   - Characters: お, き, す, つ, な, は, ま, や, れ, を
+
+3. Data Balance:
+   - Training: 6,000 samples per class (perfectly balanced)
+   - Test: 1,000 samples per class (perfectly balanced)
+   - No class imbalance handling needed
+
+4. Image Characteristics:
+   - Grayscale (single channel)
+   - Pixel values: 0-1 (normalized)
+   - Ancient calligraphy style (Kuzushiji)
+
+5. Challenges:
+   - More complex than MNIST digits
+   - Variation in writing styles
+   - Some characters look similar
+
+6. Recommended Models:
+   - LeNet-5: Baseline (~95-97% accuracy)
+   - ResNet-18: Strong performance (~98-99%)
+   - Simple CNN: Good for quick experiments
+
+7. Preprocessing Suggestions:
+   - Normalize to [0, 1] or standardize
+   - Optional: data augmentation (rotation, shift)
+   - No complex preprocessing needed
+
+8. Benchmark Accuracy:
+   - State-of-the-art: ~99.34%
+   - Good baseline: ~97%
+   - Simple CNN: ~95%
