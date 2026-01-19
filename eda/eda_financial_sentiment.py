@@ -44,7 +44,7 @@ class HTMLReport:
     
     def generate_html(self):
         html = f'''<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,90 +52,85 @@ class HTMLReport:
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', Georgia, serif;
             background: #ffffff;
             min-height: 100vh;
-            color: #333333;
-            line-height: 1.6;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 11pt;
         }}
         .container {{
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
-        }}
-        header {{
-            text-align: center;
-            padding: 60px 0;
-            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(0, 184, 148, 0.2);
+            padding: 40px 50px;
         }}
         h1 {{
-            font-size: 2.5em;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: normal;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: none;
         }}
-        .subtitle {{
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1em;
+        .meta {{
+            text-align: center;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
         }}
         .section {{
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
             margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }}
         .section h2 {{
-            color: #00b894;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #00b894;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
         }}
         .section pre {{
-            background: #f1f3f4;
-            padding: 20px;
-            border-radius: 10px;
+            background: #f9f9f9;
+            padding: 15px;
             overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.9em;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 9pt;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #333333;
-            border: 1px solid #e0e0e0;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+            margin: 15px 0;
         }}
         .section img {{
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: block;
             margin: 20px auto;
+            border: 1px solid #ddd;
+        }}
+        .figure-caption {{
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 8px;
+            font-style: italic;
         }}
         footer {{
             text-align: center;
-            padding: 30px;
-            color: #666666;
-            font-size: 0.9em;
-        }}
-        .timestamp {{
-            color: rgba(255,255,255,0.8);
+            padding: 30px 0;
+            color: #777;
             font-size: 0.85em;
-            margin-top: 5px;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>💹 {self.title}</h1>
-            <p class="subtitle">Exploratory Data Analysis Report</p>
-            <p class="timestamp">生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-        </header>
+        <h1>{self.title}</h1>
+        <p class="meta">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
 '''
         for section in self.sections:
             html += f'''
@@ -628,6 +623,62 @@ def entity_extraction_analysis(df, text_col, sentiment_col):
     report.add_figure(fig, "实体提取分析")
 
 
+def sample_texts_display(df, text_col, sentiment_col, n=5):
+    """样本文本展示"""
+    output = StringIO()
+    output.write("=" * 60 + "\n")
+    output.write("9. 样本文本展示\n")
+    output.write("=" * 60 + "\n")
+
+    for sentiment in df[sentiment_col].unique():
+        output.write(f"\n--- {sentiment.upper()} 样本 ---\n")
+        samples = df[df[sentiment_col] == sentiment][text_col].head(n)
+        for i, text in enumerate(samples, 1):
+            output.write(f"[{i}] {str(text)[:150]}\n\n")
+
+    report.add_section("9. 样本文本展示", output.getvalue())
+
+
+def wordcloud_analysis(df, text_col, sentiment_col):
+    """词云可视化"""
+    output = StringIO()
+    output.write("=" * 60 + "\n")
+    output.write("10. 词云分析\n")
+    output.write("=" * 60 + "\n")
+
+    try:
+        from wordcloud import WordCloud
+    except ImportError:
+        output.write("WordCloud未安装，跳过\n")
+        report.add_section("10. 词云分析", output.getvalue())
+        return
+
+    stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+                'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+                'have', 'has', 'had', 'it', 'its', 'this', 'that', 'will', 'would'}
+
+    sentiments = df[sentiment_col].unique()
+    fig, axes = plt.subplots(1, len(sentiments), figsize=(6*len(sentiments), 5))
+    if len(sentiments) == 1:
+        axes = [axes]
+
+    color_map = {'positive': 'Greens', 'negative': 'Reds', 'neutral': 'Blues'}
+
+    for idx, sentiment in enumerate(sentiments):
+        text = ' '.join(df[df[sentiment_col] == sentiment][text_col].astype(str).tolist())
+        wc = WordCloud(width=600, height=400, background_color='white',
+                      stopwords=stopwords, max_words=80,
+                      colormap=color_map.get(sentiment, 'viridis'))
+        wc.generate(text)
+        axes[idx].imshow(wc, interpolation='bilinear')
+        axes[idx].set_title(f'{sentiment.capitalize()}', fontsize=12)
+        axes[idx].axis('off')
+
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/wordcloud.png', dpi=150, bbox_inches='tight')
+    report.add_figure(fig, "词云分析")
+
+
 def temporal_keyword_analysis(df, text_col, sentiment_col):
     """时间词汇分析"""
     output = StringIO()
@@ -739,49 +790,21 @@ def temporal_keyword_analysis(df, text_col, sentiment_col):
 
 
 def generate_summary(df, sentiment_col, text_col):
-    """生成EDA总结"""
+    """保存数据统计到文件"""
     sentiment_counts = df[sentiment_col].value_counts()
 
     summary = f"""
-Financial News Sentiment Analysis Dataset EDA Summary
-=====================================================
-
-1. Dataset Overview:
-   - Total samples: {len(df)}
-   - Features: {df.shape[1]}
-   - Missing values: {df.isnull().sum().sum()}
-   - Duplicate rows: {df.duplicated().sum()}
-
-2. Sentiment Distribution:
+数据统计
+--------
+样本数: {len(df)}
+情感分布:
 {sentiment_counts.to_string()}
 
-   Class Imbalance Ratio: {sentiment_counts.min() / sentiment_counts.max():.3f}
-   (Ratio < 0.5 indicates significant imbalance)
+类别比例: {sentiment_counts.min() / sentiment_counts.max():.3f}
 
-3. Headline Statistics:
-   - Average length: {df['text_length'].mean():.2f} characters
-   - Average word count: {df['word_count'].mean():.2f} words
-   - Length range: {df['text_length'].min()} - {df['text_length'].max()} chars
-
-4. Key Observations:
-   - Dataset has 3 sentiment classes: positive, neutral, negative
-   - Neutral class is typically the majority (around 59%)
-   - Headlines are relatively short (good for BERT models)
-   - Clear class imbalance needs to be addressed
-
-5. Recommendations for Modeling:
-   - Use class weights or oversampling for imbalance
-   - Consider FinBERT (pre-trained on financial text)
-   - Headlines are short, so max_length=128 should suffice
-   - Use stratified train/test split
-
-6. Suggested Preprocessing:
-   - Lowercase text
-   - Remove special characters (optional)
-   - No stemming needed for transformer models
+文本长度: {df['text_length'].mean():.2f} (avg)
+词数: {df['word_count'].mean():.2f} (avg)
 """
-    report.add_section("9. EDA 总结报告", summary)
-
     with open(f'{OUTPUT_DIR}/eda_summary.txt', 'w') as f:
         f.write(summary)
 
@@ -791,41 +814,15 @@ def main():
     print("Financial News Sentiment Analysis Dataset - EDA")
     print("=" * 60)
 
-    DATA_PATH = '../data/all-data.csv'  # FinancialPhraseBank 文件名
+    DATA_PATH = '../data/finanial-news/all-data.csv'
 
     if not os.path.exists(DATA_PATH):
-        print(f"\n[WARNING] 数据文件不存在: {DATA_PATH}")
+        print(f"\n[ERROR] 数据文件不存在: {DATA_PATH}")
         print("请从Kaggle下载数据集:")
         print("https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news")
-
-        print("\n创建示例数据用于演示...")
-        demo_data = {
-            'sentiment': ['positive'] * 280 + ['negative'] * 130 + ['neutral'] * 590,
-            'news_headline': [
-                'Company reports strong quarterly profits',
-                'Stock prices surge after earnings beat',
-                'Revenue growth exceeds expectations'
-            ] * 93 + [
-                'Company reports quarterly profits'
-            ] * 4 + [
-                'Shares fall after disappointing results',
-                'Company misses revenue targets',
-                'Stock plunges on weak outlook'
-            ] * 43 + [
-                'Shares decline'
-            ] + [
-                'Company announces quarterly results',
-                'CEO to present at investor conference',
-                'Board approves dividend policy'
-            ] * 196 + [
-                'Company plans expansion',
-                'Market awaits earnings report'
-            ]
-        }
-        df = pd.DataFrame(demo_data)
-        print("使用演示数据进行分析...")
-    else:
-        df = load_data(DATA_PATH)
+        return
+    
+    df = load_data(DATA_PATH)
 
     df = basic_info(df)
     sentiment_col = sentiment_distribution(df)
@@ -833,6 +830,8 @@ def main():
     financial_keyword_analysis(df, text_col, sentiment_col)
     word_frequency_by_sentiment(df, text_col, sentiment_col)
     entity_extraction_analysis(df, text_col, sentiment_col)
+    sample_texts_display(df, text_col, sentiment_col)
+    wordcloud_analysis(df, text_col, sentiment_col)
     temporal_keyword_analysis(df, text_col, sentiment_col)
     generate_summary(df, sentiment_col, text_col)
 

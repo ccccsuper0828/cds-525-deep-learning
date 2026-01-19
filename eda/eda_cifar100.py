@@ -44,7 +44,7 @@ class HTMLReport:
     
     def generate_html(self):
         html = f'''<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,90 +52,85 @@ class HTMLReport:
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', Georgia, serif;
             background: #ffffff;
             min-height: 100vh;
-            color: #333333;
-            line-height: 1.6;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 11pt;
         }}
         .container {{
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
-        }}
-        header {{
-            text-align: center;
-            padding: 60px 0;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.2);
+            padding: 40px 50px;
         }}
         h1 {{
-            font-size: 2.5em;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: normal;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: none;
         }}
-        .subtitle {{
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1em;
+        .meta {{
+            text-align: center;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
         }}
         .section {{
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
             margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }}
         .section h2 {{
-            color: #e91e63;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e91e63;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
         }}
         .section pre {{
-            background: #f1f3f4;
-            padding: 20px;
-            border-radius: 10px;
+            background: #f9f9f9;
+            padding: 15px;
             overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.9em;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 9pt;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #333333;
-            border: 1px solid #e0e0e0;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+            margin: 15px 0;
         }}
         .section img {{
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: block;
             margin: 20px auto;
+            border: 1px solid #ddd;
+        }}
+        .figure-caption {{
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 8px;
+            font-style: italic;
         }}
         footer {{
             text-align: center;
-            padding: 30px;
-            color: #666666;
-            font-size: 0.9em;
-        }}
-        .timestamp {{
-            color: rgba(255,255,255,0.8);
+            padding: 30px 0;
+            color: #777;
             font-size: 0.85em;
-            margin-top: 5px;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🖼️ {self.title}</h1>
-            <p class="subtitle">Exploratory Data Analysis Report</p>
-            <p class="timestamp">生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-        </header>
+        <h1>{self.title}</h1>
+        <p class="meta">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
 '''
         for section in self.sections:
             html += f'''
@@ -185,6 +180,37 @@ SUPERCLASSES = {
     18: 'vehicles 1',
     19: 'vehicles 2'
 }
+
+# 正确的超类到细分类映射 (CIFAR-100官方定义)
+# 细分类按字母顺序排列: apple=0, aquarium_fish=1, baby=2, ...
+SUPERCLASS_TO_FINE = {
+    0: [4, 30, 55, 72, 95],      # aquatic mammals: beaver, dolphin, otter, seal, whale
+    1: [1, 32, 67, 73, 91],      # fish: aquarium_fish, flatfish, ray, shark, trout
+    2: [54, 62, 70, 82, 92],     # flowers: orchid, poppy, rose, sunflower, tulip
+    3: [9, 10, 16, 28, 61],      # food containers: bottle, bowl, can, cup, plate
+    4: [0, 51, 53, 57, 83],      # fruit and vegetables: apple, mushroom, orange, pear, sweet_pepper
+    5: [22, 39, 40, 86, 87],     # household electrical devices: clock, keyboard, lamp, telephone, television
+    6: [5, 20, 25, 84, 94],      # household furniture: bed, chair, couch, table, wardrobe
+    7: [6, 7, 14, 18, 24],       # insects: bee, beetle, butterfly, caterpillar, cockroach
+    8: [3, 42, 43, 88, 97],      # large carnivores: bear, leopard, lion, tiger, wolf
+    9: [12, 17, 37, 68, 76],     # large man-made outdoor things: bridge, castle, house, road, skyscraper
+    10: [23, 33, 49, 60, 71],    # large natural outdoor scenes: cloud, forest, mountain, plain, sea
+    11: [15, 19, 21, 31, 38],    # large omnivores and herbivores: camel, cattle, chimpanzee, elephant, kangaroo
+    12: [34, 63, 64, 66, 75],    # medium-sized mammals: fox, porcupine, possum, raccoon, skunk
+    13: [26, 45, 77, 79, 99],    # non-insect invertebrates: crab, lobster, snail, spider, worm
+    14: [2, 11, 35, 46, 98],     # people: baby, boy, girl, man, woman
+    15: [27, 29, 44, 78, 93],    # reptiles: crocodile, dinosaur, lizard, snake, turtle
+    16: [36, 50, 65, 74, 80],    # small mammals: hamster, mouse, rabbit, shrew, squirrel
+    17: [47, 52, 56, 59, 96],    # trees: maple_tree, oak_tree, palm_tree, pine_tree, willow_tree
+    18: [8, 13, 48, 58, 90],     # vehicles 1: bicycle, bus, motorcycle, pickup_truck, train
+    19: [41, 69, 81, 85, 89],    # vehicles 2: lawn_mower, rocket, streetcar, tank, tractor
+}
+
+# 反向映射：细分类 -> 超类
+FINE_TO_SUPERCLASS = {}
+for superclass, fine_classes in SUPERCLASS_TO_FINE.items():
+    for fine_class in fine_classes:
+        FINE_TO_SUPERCLASS[fine_class] = superclass
 
 # 部分细分类示例
 FINE_CLASSES_SAMPLE = [
@@ -296,11 +322,10 @@ def class_distribution(train_labels, test_labels, train_dataset):
     # 可视化 - 按超类分组
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
-    # 超类分布
+    # 超类分布 - 使用正确的映射
     superclass_counts = {i: 0 for i in range(20)}
-    # 假设每5个细分类属于一个超类
     for fine_class, count in train_counts.items():
-        superclass = fine_class // 5
+        superclass = FINE_TO_SUPERCLASS.get(fine_class, 0)
         superclass_counts[superclass] += count
 
     colors = plt.cm.tab20(np.linspace(0, 1, 20))
@@ -366,24 +391,26 @@ def sample_visualization(train_dataset):
     axes = axes.flatten()
 
     for superclass_idx in range(20):
-        # 该超类对应的细分类 (假设每5个细分类属于一个超类)
-        fine_classes = range(superclass_idx * 5, (superclass_idx + 1) * 5)
+        # 该超类对应的细分类 - 使用正确的映射
+        fine_classes = SUPERCLASS_TO_FINE[superclass_idx]
 
         # 找一个样本
+        idx = None
         for fine_class in fine_classes:
             indices = np.where(targets == fine_class)[0]
             if len(indices) > 0:
                 idx = indices[0]
                 break
 
-        image, label = train_dataset[idx]
-        if isinstance(image, torch.Tensor):
-            image = image.numpy().transpose(1, 2, 0)
+        if idx is not None:
+            image, label = train_dataset[idx]
+            if isinstance(image, torch.Tensor):
+                image = image.numpy().transpose(1, 2, 0)
 
-        ax = axes[superclass_idx]
-        ax.imshow(image)
-        ax.set_title(f'{SUPERCLASSES[superclass_idx][:20]}', fontsize=9)
-        ax.axis('off')
+            ax = axes[superclass_idx]
+            ax.imshow(image)
+            ax.set_title(f'{SUPERCLASSES[superclass_idx][:20]}', fontsize=9)
+            ax.axis('off')
 
     fig.suptitle('Sample Images from Each Superclass', fontsize=14, y=1.02)
     plt.tight_layout()
@@ -502,10 +529,10 @@ def class_similarity_analysis(train_dataset):
     targets = np.array(train_dataset.targets)
     n_samples_per_class = 100  # 每个类别采样数
 
-    # 计算每个超类的平均图像向量
+    # 计算每个超类的平均图像向量 - 使用正确的映射
     superclass_vectors = {}
     for superclass_idx in range(20):
-        fine_classes = range(superclass_idx * 5, (superclass_idx + 1) * 5)
+        fine_classes = SUPERCLASS_TO_FINE[superclass_idx]
         class_images = []
 
         for fine_class in fine_classes:
@@ -639,12 +666,13 @@ def brightness_contrast_analysis(train_dataset):
     axes[1, 0].set_ylabel('Contrast')
     axes[1, 0].set_title('Brightness vs Contrast')
 
-    # 按超类分组的亮度/对比度
+    # 按超类分组的亮度/对比度 - 使用正确的映射
     targets = np.array(train_dataset.targets)
     superclass_brightness = {i: [] for i in range(20)}
 
     for i in range(n_samples):
-        superclass = targets[i] // 5
+        fine_class = targets[i]
+        superclass = FINE_TO_SUPERCLASS.get(fine_class, 0)
         superclass_brightness[superclass].append(brightness_values[i])
 
     superclass_means = [np.mean(superclass_brightness[i]) for i in range(20)]
@@ -671,27 +699,27 @@ def superclass_analysis(train_dataset):
 
     output.write("\n超类及其包含的细分类:\n")
     for superclass_idx, superclass_name in SUPERCLASSES.items():
-        fine_start = superclass_idx * 5
-        fine_end = fine_start + 5
+        # 使用正确的细分类映射
+        fine_indices = SUPERCLASS_TO_FINE[superclass_idx]
 
         if hasattr(train_dataset, 'classes'):
-            fine_names = train_dataset.classes[fine_start:fine_end]
+            fine_names = [train_dataset.classes[i] for i in fine_indices]
         else:
-            fine_names = [f'class_{i}' for i in range(fine_start, fine_end)]
+            fine_names = [f'class_{i}' for i in fine_indices]
 
         output.write(f"\n  {superclass_name}:\n")
         output.write(f"    细分类: {fine_names}\n")
 
     report.add_section("6. 超类详细分析", output.getvalue())
 
-    # 可视化超类关系
+    # 可视化超类关系 - 使用正确的映射
     fig, ax = plt.subplots(figsize=(12, 10))
 
     # 创建超类-细分类关系矩阵
     matrix = np.zeros((20, 100))
     for superclass_idx in range(20):
-        for fine_idx in range(5):
-            matrix[superclass_idx, superclass_idx * 5 + fine_idx] = 1
+        for fine_idx in SUPERCLASS_TO_FINE[superclass_idx]:
+            matrix[superclass_idx, fine_idx] = 1
 
     ax.imshow(matrix, cmap='Blues', aspect='auto')
     ax.set_xlabel('Fine Class Index')
@@ -706,57 +734,18 @@ def superclass_analysis(train_dataset):
 
 
 def generate_summary(train_dataset, test_dataset, pixel_stats):
-    """生成EDA总结"""
+    """保存像素统计供后续使用"""
     summary = f"""
-CIFAR-100 Dataset EDA Summary
-=============================
+CIFAR-100 数据统计
+------------------
+训练集: {len(train_dataset)}
+测试集: {len(test_dataset)}
+图像: 32x32 RGB
+类别: 100 (20超类)
 
-1. Dataset Overview:
-   - Training samples: {len(train_dataset)}
-   - Test samples: {len(test_dataset)}
-   - Image size: 32 x 32 RGB
-   - Fine classes: 100
-   - Superclasses: 20
-
-2. Class Structure:
-   - Each superclass contains 5 fine classes
-   - Training: 500 samples per fine class
-   - Test: 100 samples per fine class
-   - Perfectly balanced dataset
-
-3. Image Statistics:
-   - Pixel value range: [0, 1]
-   - R channel - Mean: {pixel_stats['mean'][0]:.4f}, Std: {pixel_stats['std'][0]:.4f}
-   - G channel - Mean: {pixel_stats['mean'][1]:.4f}, Std: {pixel_stats['std'][1]:.4f}
-   - B channel - Mean: {pixel_stats['mean'][2]:.4f}, Std: {pixel_stats['std'][2]:.4f}
-
-4. Key Challenges:
-   - Fine-grained classification (100 classes)
-   - Low resolution (32x32)
-   - High intra-class variance
-   - Some visually similar classes
-
-5. Recommended Models:
-   - ResNet-56/110: Good baseline (~72-75%)
-   - WideResNet: Strong performance (~80-82%)
-   - DenseNet: Competitive results (~78-82%)
-   - Vision Transformer: State-of-the-art (~85-90%)
-
-6. Preprocessing Suggestions:
-   - Normalize with dataset mean/std
-   - Data augmentation: random crop, horizontal flip
-   - Cutout/MixUp for regularization
-
-7. Recommended Normalization:
-   - Mean: [{pixel_stats['mean'][0]:.4f}, {pixel_stats['mean'][1]:.4f}, {pixel_stats['mean'][2]:.4f}]
-   - Std: [{pixel_stats['std'][0]:.4f}, {pixel_stats['std'][1]:.4f}, {pixel_stats['std'][2]:.4f}]
-
-8. Evaluation:
-   - Primary metric: Top-1 accuracy on fine classes
-   - Secondary: Top-5 accuracy, superclass accuracy
+像素均值: [{pixel_stats['mean'][0]:.4f}, {pixel_stats['mean'][1]:.4f}, {pixel_stats['mean'][2]:.4f}]
+像素标准差: [{pixel_stats['std'][0]:.4f}, {pixel_stats['std'][1]:.4f}, {pixel_stats['std'][2]:.4f}]
 """
-    report.add_section("9. EDA 总结报告", summary)
-
     with open(f'{OUTPUT_DIR}/eda_summary.txt', 'w') as f:
         f.write(summary)
 

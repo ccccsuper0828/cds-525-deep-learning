@@ -42,7 +42,7 @@ class HTMLReport:
     
     def generate_html(self):
         html = f'''<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,90 +50,85 @@ class HTMLReport:
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', Georgia, serif;
             background: #ffffff;
             min-height: 100vh;
-            color: #333333;
-            line-height: 1.6;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 11pt;
         }}
         .container {{
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
-        }}
-        header {{
-            text-align: center;
-            padding: 60px 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+            padding: 40px 50px;
         }}
         h1 {{
-            font-size: 2.5em;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: normal;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: none;
         }}
-        .subtitle {{
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1em;
+        .meta {{
+            text-align: center;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
         }}
         .section {{
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
             margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }}
         .section h2 {{
-            color: #667eea;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
         }}
         .section pre {{
-            background: #f1f3f4;
-            padding: 20px;
-            border-radius: 10px;
+            background: #f9f9f9;
+            padding: 15px;
             overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.9em;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 9pt;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #333333;
-            border: 1px solid #e0e0e0;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+            margin: 15px 0;
         }}
         .section img {{
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: block;
             margin: 20px auto;
+            border: 1px solid #ddd;
+        }}
+        .figure-caption {{
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 8px;
+            font-style: italic;
         }}
         footer {{
             text-align: center;
-            padding: 30px;
-            color: #666666;
-            font-size: 0.9em;
-        }}
-        .timestamp {{
-            color: rgba(255,255,255,0.8);
+            padding: 30px 0;
+            color: #777;
             font-size: 0.85em;
-            margin-top: 5px;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📱 {self.title}</h1>
-            <p class="subtitle">Exploratory Data Analysis Report</p>
-            <p class="timestamp">生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-        </header>
+        <h1>{self.title}</h1>
+        <p class="meta">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
 '''
         for section in self.sections:
             html += f'''
@@ -446,11 +441,55 @@ def sample_texts(df, text_col, label_col, n=3):
     report.add_section("6. 样本文本展示", output.getvalue())
 
 
+def wordcloud_analysis(df, text_col, label_col):
+    """词云可视化"""
+    output = StringIO()
+    output.write("=" * 60 + "\n")
+    output.write("7. 词云分析\n")
+    output.write("=" * 60 + "\n")
+
+    try:
+        from wordcloud import WordCloud
+    except ImportError:
+        output.write("WordCloud未安装，跳过\n")
+        report.add_section("7. 词云分析", output.getvalue())
+        return
+
+    stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+                'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+                'have', 'has', 'had', 'it', 'its', 'this', 'that', 'i', 'you', 'my',
+                'im', 'dont', 'just', 'so', 'http', 'https', 'rt', 'amp', 'co'}
+
+    labels = df[label_col].unique()
+    n_labels = min(len(labels), 4)
+    fig, axes = plt.subplots(1, n_labels, figsize=(5*n_labels, 4))
+    if n_labels == 1:
+        axes = [axes]
+
+    for idx, label in enumerate(labels[:n_labels]):
+        text = ' '.join(df[df[label_col] == label][text_col].astype(str).tolist())
+        # 清理社交媒体特殊内容
+        text = re.sub(r'http\S+', '', text)
+        text = re.sub(r'@\w+', '', text)
+        text = re.sub(r'#\w+', '', text)
+
+        wc = WordCloud(width=500, height=350, background_color='white',
+                      stopwords=stopwords, max_words=60)
+        wc.generate(text)
+        axes[idx].imshow(wc, interpolation='bilinear')
+        axes[idx].set_title(f'{label}', fontsize=11)
+        axes[idx].axis('off')
+
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/wordcloud.png', dpi=150, bbox_inches='tight')
+    report.add_figure(fig, "词云分析")
+
+
 def emoji_sentiment_analysis(df, text_col, label_col):
     """Emoji情感映射分析"""
     output = StringIO()
     output.write("=" * 60 + "\n")
-    output.write("7. Emoji情感映射分析\n")
+    output.write("8. Emoji情感映射分析\n")
     output.write("=" * 60 + "\n")
 
     # 定义emoji情感映射
@@ -629,44 +668,22 @@ def emoji_sentiment_analysis(df, text_col, label_col):
 
 
 def generate_summary(df, text_col, label_col):
-    """生成EDA总结"""
+    """保存数据统计"""
     sentiment_counts = df[label_col].value_counts()
 
     summary = f"""
-Social Media Sentiment Analysis Dataset EDA Summary
-===================================================
+数据概览
+--------
+样本: {len(df)}
+情感类别数: {df[label_col].nunique()}
 
-1. Dataset Overview:
-   - Total samples: {len(df)}
-   - Features: {df.shape[1]}
-   - Unique sentiments: {df[label_col].nunique()}
-   - Missing values: {df.isnull().sum().sum()}
-
-2. Sentiment Distribution:
+分布:
 {sentiment_counts.to_string()}
 
-3. Text Statistics:
-   - Average text length: {df['text_length'].mean():.2f} characters
-   - Average word count: {df['word_count'].mean():.2f} words
-
-4. Social Media Features:
-   - Average hashtags: {df['hashtag_count'].mean():.2f}
-   - Average mentions: {df['mention_count'].mean():.2f}
-   - Average URLs: {df['url_count'].mean():.2f}
-
-5. Key Observations:
-   - Social media text is typically informal and short
-   - Contains hashtags, mentions, and URLs that need preprocessing
-   - May contain emojis, slang, and abbreviations
-
-6. Recommendations:
-   - Preprocess: handle hashtags, mentions, URLs
-   - Consider BERTweet for better performance
-   - Use proper tokenization for social media text
-   - Handle class imbalance if present
+文本长度: {df['text_length'].mean():.2f} (avg)
+hashtag: {df['hashtag_count'].mean():.2f} (avg)
+mention: {df['mention_count'].mean():.2f} (avg)
 """
-    report.add_section("8. EDA 总结报告", summary)
-
     with open(f'{OUTPUT_DIR}/eda_summary.txt', 'w') as f:
         f.write(summary)
 
@@ -676,37 +693,24 @@ def main():
     print("Social Media Sentiment Analysis Dataset - EDA")
     print("=" * 60)
 
-    DATA_PATH = '../data/sentiment_analysis.csv'
+    DATA_PATH = '../data/sentiment_analysis 2.csv'
 
     if not os.path.exists(DATA_PATH):
-        print(f"\n[WARNING] 数据文件不存在: {DATA_PATH}")
+        print(f"\n[ERROR] 数据文件不存在: {DATA_PATH}")
         print("请从Kaggle下载数据集:")
         print("https://www.kaggle.com/datasets/mdismielhossenabir/sentiment-analysis")
-
-        print("\n创建示例数据用于演示...")
-        demo_data = {
-            'text': [
-                'I love this product! Amazing quality #happy @brand',
-                'Terrible experience, never buying again http://link.com',
-                'Just ordered some stuff, waiting for delivery',
-                'Best day ever!!! So excited #blessed',
-                'Worst customer service I have ever seen',
-                'The package arrived today, looks okay'
-            ] * 50,
-            'sentiment': ['positive', 'negative', 'neutral', 'positive', 'negative', 'neutral'] * 50
-        }
-        df = pd.DataFrame(demo_data)
-        text_col, label_col = 'text', 'sentiment'
-    else:
-        df = load_data(DATA_PATH)
-        text_col, label_col = find_columns(df)
+        return
+    
+    df = load_data(DATA_PATH)
+    text_col, label_col = find_columns(df)
 
     df = basic_info(df)
     sentiment_distribution(df, label_col)
     df = text_analysis(df, text_col, label_col)
     word_frequency_analysis(df, text_col, label_col)
     sample_texts(df, text_col, label_col)
-    emoji_sentiment_analysis(df, text_col, label_col)
+    wordcloud_analysis(df, text_col, label_col)
+    # emoji_sentiment_analysis 已移除 - 该数据集不包含emoji
     generate_summary(df, text_col, label_col)
 
     # 生成HTML报告

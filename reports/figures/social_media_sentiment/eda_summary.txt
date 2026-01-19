@@ -1,35 +1,15 @@
 
-Social Media Sentiment Analysis Dataset EDA Summary
-===================================================
+数据概览
+--------
+样本: 499
+情感类别数: 3
 
-1. Dataset Overview:
-   - Total samples: 499
-   - Features: 19
-   - Unique sentiments: 3
-   - Missing values: 0
-
-2. Sentiment Distribution:
+分布:
 sentiment
 neutral     199
 positive    166
 negative    134
 
-3. Text Statistics:
-   - Average text length: 59.83 characters
-   - Average word count: 11.49 words
-
-4. Social Media Features:
-   - Average hashtags: 0.00
-   - Average mentions: 0.00
-   - Average URLs: 0.01
-
-5. Key Observations:
-   - Social media text is typically informal and short
-   - Contains hashtags, mentions, and URLs that need preprocessing
-   - May contain emojis, slang, and abbreviations
-
-6. Recommendations:
-   - Preprocess: handle hashtags, mentions, URLs
-   - Consider BERTweet for better performance
-   - Use proper tokenization for social media text
-   - Handle class imbalance if present
+文本长度: 59.83 (avg)
+hashtag: 0.00 (avg)
+mention: 0.00 (avg)

@@ -44,7 +44,7 @@ class HTMLReport:
     
     def generate_html(self):
         html = f'''<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,90 +52,85 @@ class HTMLReport:
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', Georgia, serif;
             background: #ffffff;
             min-height: 100vh;
-            color: #333333;
-            line-height: 1.6;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 11pt;
         }}
         .container {{
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
-        }}
-        header {{
-            text-align: center;
-            padding: 60px 0;
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.2);
+            padding: 40px 50px;
         }}
         h1 {{
-            font-size: 2.5em;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: normal;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: none;
         }}
-        .subtitle {{
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1em;
+        .meta {{
+            text-align: center;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
         }}
         .section {{
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
             margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }}
         .section h2 {{
-            color: #e74c3c;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e74c3c;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
         }}
         .section pre {{
-            background: #f1f3f4;
-            padding: 20px;
-            border-radius: 10px;
+            background: #f9f9f9;
+            padding: 15px;
             overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.9em;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 9pt;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #333333;
-            border: 1px solid #e0e0e0;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+            margin: 15px 0;
         }}
         .section img {{
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: block;
             margin: 20px auto;
+            border: 1px solid #ddd;
+        }}
+        .figure-caption {{
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 8px;
+            font-style: italic;
         }}
         footer {{
             text-align: center;
-            padding: 30px;
-            color: #666666;
-            font-size: 0.9em;
-        }}
-        .timestamp {{
-            color: rgba(255,255,255,0.8);
+            padding: 30px 0;
+            color: #777;
             font-size: 0.85em;
-            margin-top: 5px;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📰 {self.title}</h1>
-            <p class="subtitle">Exploratory Data Analysis Report</p>
-            <p class="timestamp">生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-        </header>
+        <h1>{self.title}</h1>
+        <p class="meta">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
 '''
         for section in self.sections:
             html += f'''
@@ -537,11 +532,75 @@ def ngram_analysis(df, text_col, label_col, top_n=15):
     report.add_figure(fig, "N-gram分析")
 
 
+def sample_texts_display(df, text_col, label_col, n=5):
+    """样本文本展示"""
+    output = StringIO()
+    output.write("=" * 60 + "\n")
+    output.write("8. 样本文本展示\n")
+    output.write("=" * 60 + "\n")
+
+    for label in df[label_col].unique():
+        output.write(f"\n--- {label} 样本 ---\n")
+        samples = df[df[label_col] == label][text_col].head(n)
+        for i, text in enumerate(samples, 1):
+            text_preview = str(text)[:200].replace('\n', ' ')
+            output.write(f"[{i}] {text_preview}...\n\n")
+
+    report.add_section("8. 样本文本展示", output.getvalue())
+
+
+def wordcloud_analysis(df, text_col, label_col):
+    """词云可视化"""
+    output = StringIO()
+    output.write("=" * 60 + "\n")
+    output.write("9. 词云分析\n")
+    output.write("=" * 60 + "\n")
+
+    try:
+        from wordcloud import WordCloud
+    except ImportError:
+        output.write("WordCloud未安装，跳过词云分析\n")
+        output.write("安装: pip install wordcloud\n")
+        report.add_section("9. 词云分析", output.getvalue())
+        return
+
+    stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+                'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been',
+                'have', 'has', 'had', 'it', 'its', 'this', 'that', 'said', 'would',
+                'could', 'will', 'can', 'may', 'also', 'as', 'just', 'not', 'more'}
+
+    labels = df[label_col].unique()
+    fig, axes = plt.subplots(1, len(labels), figsize=(7*len(labels), 6))
+    if len(labels) == 1:
+        axes = [axes]
+
+    colors = {'0': 'Reds', '1': 'Greens', 'Fake': 'Reds', 'Real': 'Greens',
+              'fake': 'Reds', 'real': 'Greens'}
+
+    for idx, label in enumerate(labels):
+        text = ' '.join(df[df[label_col] == label][text_col].astype(str).tolist())
+        wc = WordCloud(width=800, height=400, background_color='white',
+                      stopwords=stopwords, max_words=100,
+                      colormap=colors.get(str(label), 'viridis'))
+        wc.generate(text)
+
+        axes[idx].imshow(wc, interpolation='bilinear')
+        axes[idx].set_title(f'Word Cloud - {label}', fontsize=14)
+        axes[idx].axis('off')
+
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/wordcloud.png', dpi=150, bbox_inches='tight')
+    report.add_figure(fig, "词云分析")
+
+    output.write("词云已生成\n")
+    report.add_section("9. 词云分析", output.getvalue())
+
+
 def text_quality_analysis(df, text_col, label_col):
     """文本质量分析"""
     output = StringIO()
     output.write("=" * 60 + "\n")
-    output.write("8. 文本质量分析\n")
+    output.write("10. 文本质量分析\n")
     output.write("=" * 60 + "\n")
 
     # 计算各种质量指标
@@ -634,38 +693,23 @@ def text_quality_analysis(df, text_col, label_col):
 
 
 def generate_summary(df, label_col, text_col):
-    """生成EDA总结"""
+    """生成EDA总结 - 不输出到报告"""
+    # 仅保存到文件供参考，不添加到HTML报告
     summary = f"""
-Fake News Detection Dataset EDA Summary
-========================================
+数据集基本情况
+--------------
+样本数: {len(df)}
+特征数: {df.shape[1]}
+缺失值: {df.isnull().sum().sum()}
+重复行: {df.duplicated().sum()}
 
-1. Dataset Overview:
-   - Total samples: {len(df)}
-   - Features: {df.shape[1]}
-   - Missing values: {df.isnull().sum().sum()}
-   - Duplicate rows: {df.duplicated().sum()}
-
-2. Label Distribution:
+标签分布:
 {df[label_col].value_counts().to_string()}
 
-3. Text Statistics:
-   - Average text length: {df['text_length'].mean():.2f} characters
-   - Average word count: {df['word_count'].mean():.2f} words
-   - Max text length: {df['text_length'].max()} characters
-   - Min text length: {df['text_length'].min()} characters
-
-4. Key Observations:
-   - The dataset contains {df[label_col].nunique()} classes
-   - Class balance ratio: {df[label_col].value_counts().min() / df[label_col].value_counts().max():.2f}
-
-5. Recommendations:
-   - Consider text preprocessing (lowercasing, removing special characters)
-   - May need to handle class imbalance if ratio < 0.8
-   - Recommended models: BERT, DistilBERT, RoBERTa
+文本统计:
+平均长度: {df['text_length'].mean():.2f} 字符
+平均词数: {df['word_count'].mean():.2f}
 """
-    report.add_section("9. EDA 总结报告", summary)
-
-    # 保存总结
     with open(f'{OUTPUT_DIR}/eda_summary.txt', 'w') as f:
         f.write(summary)
 
@@ -676,31 +720,16 @@ def main():
     print("=" * 60)
 
     # 数据路径 - 请修改为你的实际路径
-    DATA_PATH = '../data/fakenews.csv'
+    DATA_PATH = '../data/fakenews 2.csv'
 
     # 检查文件是否存在
     if not os.path.exists(DATA_PATH):
-        print(f"\n[WARNING] 数据文件不存在: {DATA_PATH}")
+        print(f"\n[ERROR] 数据文件不存在: {DATA_PATH}")
         print("请从Kaggle下载数据集并放到指定路径:")
         print("https://www.kaggle.com/datasets/iamrahulthorat/fakenews-csv")
-        print("\n或修改 DATA_PATH 变量为正确的文件路径")
+        return
 
-        # 创建示例数据用于演示
-        print("\n创建示例数据用于演示...")
-        demo_data = {
-            'text': [
-                'Breaking news: Scientists discover new species in Amazon rainforest',
-                'SHOCKING: Celebrity secretly married to alien from Mars',
-                'Stock market reaches all-time high amid economic growth',
-                'FAKE ALERT: Government hiding truth about moon landing',
-                'Local community raises funds for hospital expansion'
-            ] * 100,
-            'label': ['Real', 'Fake', 'Real', 'Fake', 'Real'] * 100
-        }
-        df = pd.DataFrame(demo_data)
-        print("使用演示数据进行分析...")
-    else:
-        df = load_data(DATA_PATH)
+    df = load_data(DATA_PATH)
 
     # 执行EDA步骤
     df = basic_info(df)
@@ -709,6 +738,8 @@ def main():
     text_by_label(df, text_col, label_col)
     word_frequency_analysis(df, text_col, label_col)
     ngram_analysis(df, text_col, label_col)
+    sample_texts_display(df, text_col, label_col)
+    wordcloud_analysis(df, text_col, label_col)
     text_quality_analysis(df, text_col, label_col)
     generate_summary(df, label_col, text_col)
 

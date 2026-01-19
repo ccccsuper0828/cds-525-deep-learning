@@ -1,0 +1,46 @@
+# Data files
+data/
+
+# Documentation (generated)
+docs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+.venv
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Model checkpoints and outputs
+checkpoints/
+outputs/
+results/
+*.pt
+*.pth
+*.ckpt
+
+# Large files
+*.tar.gz
+*.zip
+*.gz

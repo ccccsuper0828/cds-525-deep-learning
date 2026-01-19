@@ -44,7 +44,7 @@ class HTMLReport:
     
     def generate_html(self):
         html = f'''<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,90 +52,85 @@ class HTMLReport:
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', Georgia, serif;
             background: #ffffff;
             min-height: 100vh;
-            color: #333333;
-            line-height: 1.6;
+            color: #1a1a1a;
+            line-height: 1.8;
+            font-size: 11pt;
         }}
         .container {{
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 40px 20px;
-        }}
-        header {{
-            text-align: center;
-            padding: 60px 0;
-            background: linear-gradient(135deg, #d63031 0%, #e17055 100%);
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 30px rgba(214, 48, 49, 0.2);
+            padding: 40px 50px;
         }}
         h1 {{
-            font-size: 2.5em;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            margin-bottom: 10px;
+            font-size: 1.8em;
+            font-weight: normal;
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: none;
         }}
-        .subtitle {{
-            color: rgba(255,255,255,0.9);
-            font-size: 1.1em;
+        .meta {{
+            text-align: center;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
         }}
         .section {{
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 30px;
             margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         }}
         .section h2 {{
-            color: #d63031;
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #d63031;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #333;
         }}
         .section pre {{
-            background: #f1f3f4;
-            padding: 20px;
-            border-radius: 10px;
+            background: #f9f9f9;
+            padding: 15px;
             overflow-x: auto;
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 0.9em;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 9pt;
             white-space: pre-wrap;
             word-wrap: break-word;
-            color: #333333;
-            border: 1px solid #e0e0e0;
+            color: #1a1a1a;
+            border: 1px solid #ddd;
+            margin: 15px 0;
         }}
         .section img {{
             max-width: 100%;
             height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: block;
             margin: 20px auto;
+            border: 1px solid #ddd;
+        }}
+        .figure-caption {{
+            text-align: center;
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 8px;
+            font-style: italic;
         }}
         footer {{
             text-align: center;
-            padding: 30px;
-            color: #666666;
-            font-size: 0.9em;
-        }}
-        .timestamp {{
-            color: rgba(255,255,255,0.8);
+            padding: 30px 0;
+            color: #777;
             font-size: 0.85em;
-            margin-top: 5px;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
         }}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>🎌 {self.title}</h1>
-            <p class="subtitle">Exploratory Data Analysis Report</p>
-            <p class="timestamp">生成时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-        </header>
+        <h1>{self.title}</h1>
+        <p class="meta">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
 '''
         for section in self.sections:
             html += f'''
@@ -197,10 +192,10 @@ def load_data(data_dir='../data'):
         )
         output.write("数据集下载/加载成功!\n")
     except Exception as e:
-        output.write(f"下载失败: {e}\n")
-        output.write("使用模拟数据进行演示...\n")
+        output.write(f"[ERROR] 下载失败: {e}\n")
+        output.write("请检查网络连接或手动下载数据集\n")
         report.add_section("1. 数据加载", output.getvalue())
-        return create_demo_data()
+        raise RuntimeError(f"无法加载KMNIST数据集: {e}")
 
     output.write(f"\n训练集大小: {len(train_dataset)}\n")
     output.write(f"测试集大小: {len(test_dataset)}\n")
@@ -209,23 +204,6 @@ def load_data(data_dir='../data'):
 
     report.add_section("1. 数据加载", output.getvalue())
     return train_dataset, test_dataset
-
-
-def create_demo_data():
-    """创建演示数据"""
-    class DemoDataset:
-        def __init__(self, n_samples, is_train=True):
-            self.n_samples = n_samples
-            self.data = torch.randn(n_samples, 1, 28, 28)
-            self.targets = torch.randint(0, 10, (n_samples,))
-
-        def __len__(self):
-            return self.n_samples
-
-        def __getitem__(self, idx):
-            return self.data[idx], self.targets[idx].item()
-
-    return DemoDataset(60000, True), DemoDataset(10000, False)
 
 
 def basic_info(train_dataset, test_dataset):
@@ -502,7 +480,7 @@ def class_similarity_analysis(train_dataset):
 
     # 使用罗马字标签以避免日文字符显示问题
     roman_labels = ['o', 'ki', 'su', 'tsu', 'na', 'ha', 'ma', 'ya', 're', 'wo']
-    
+
     im = ax.imshow(similarity_matrix, cmap='YlOrRd', vmin=0, vmax=1)
     ax.set_xticks(range(10))
     ax.set_yticks(range(10))
@@ -660,54 +638,18 @@ def stroke_complexity_analysis(train_dataset):
 
 
 def generate_summary(train_dataset, test_dataset):
-    """生成EDA总结"""
+    """保存数据统计"""
     summary = f"""
-KMNIST (Kuzushiji-MNIST) Dataset EDA Summary
-============================================
+KMNIST 数据统计
+---------------
+训练: {len(train_dataset)}
+测试: {len(test_dataset)}
+图像: 28x28 灰度
+类别: 10 (平假名)
 
-1. Dataset Overview:
-   - Training samples: {len(train_dataset)}
-   - Test samples: {len(test_dataset)}
-   - Image size: 28 x 28 grayscale
-   - Number of classes: 10
-
-2. Class Information:
-   - Classes represent Japanese Hiragana characters
-   - Each class: one row of the Hiragana table
-   - Characters: お, き, す, つ, な, は, ま, や, れ, を
-
-3. Data Balance:
-   - Training: 6,000 samples per class (perfectly balanced)
-   - Test: 1,000 samples per class (perfectly balanced)
-   - No class imbalance handling needed
-
-4. Image Characteristics:
-   - Grayscale (single channel)
-   - Pixel values: 0-1 (normalized)
-   - Ancient calligraphy style (Kuzushiji)
-
-5. Challenges:
-   - More complex than MNIST digits
-   - Variation in writing styles
-   - Some characters look similar
-
-6. Recommended Models:
-   - LeNet-5: Baseline (~95-97% accuracy)
-   - ResNet-18: Strong performance (~98-99%)
-   - Simple CNN: Good for quick experiments
-
-7. Preprocessing Suggestions:
-   - Normalize to [0, 1] or standardize
-   - Optional: data augmentation (rotation, shift)
-   - No complex preprocessing needed
-
-8. Benchmark Accuracy:
-   - State-of-the-art: ~99.34%
-   - Good baseline: ~97%
-   - Simple CNN: ~95%
+每类训练样本: 6000
+每类测试样本: 1000
 """
-    report.add_section("8. EDA 总结报告", summary)
-
     with open(f'{OUTPUT_DIR}/eda_summary.txt', 'w') as f:
         f.write(summary)
 
