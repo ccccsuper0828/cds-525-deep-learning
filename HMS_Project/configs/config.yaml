@@ -1,0 +1,256 @@
+# HMS Harmful Brain Activity Classification Configuration
+# 2025 SOTA Implementation with EEGMamba + CMFViT + Adaptive Fusion
+
+# ============== Data Configuration ==============
+data:
+  # Data paths
+  train_csv: "/path/to/train.csv"
+  eeg_dir: "/path/to/train_eegs"
+  spec_dir: "/path/to/train_spectrograms"
+
+  # EEG parameters
+  eeg_channels: 20
+  eeg_length: 2000  # 10 seconds @ 200Hz
+  eeg_sample_rate: 200
+
+  # Spectrogram parameters
+  spec_height: 128
+  spec_width: 256
+  n_freq_bins: 100
+  n_time_bins: 300
+
+  # Data split
+  n_folds: 5
+  fold: 0
+
+  # Sampling
+  use_patient_balanced_sampler: true
+  sampler_power: 0.5  # sqrt balancing
+
+  # Label columns
+  vote_cols:
+    - seizure_vote
+    - lpd_vote
+    - gpd_vote
+    - lrda_vote
+    - grda_vote
+    - other_vote
+
+# ============== Model Configuration ==============
+model:
+  name: "hms_full"  # hms_full, hms_lite, ensemble
+  num_classes: 6
+
+  # EEG Encoder (EEGMamba)
+  eeg_encoder:
+    type: "eeg_mamba"  # eeg_mamba, wavenet
+    in_channels: 20
+    hidden_dim: 256
+    n_layers: 4
+    d_state: 16
+    expand: 2
+    num_experts: 4
+    dropout: 0.2
+    use_bidirectional: true
+    use_moe: true
+
+  # Spectrogram Encoder (CMFViT)
+  spec_encoder:
+    type: "cmf_vit"  # cmf_vit, efficientnet, vit
+    # EfficientNet branch
+    efficientnet_name: "efficientnet_b0"
+    pretrained: true
+    # ViT branch
+    vit_model: "vit_small_patch16_224"
+    patch_size: 16
+    embed_dim: 384
+    depth: 6
+    num_heads: 6
+    mlp_ratio: 4.0
+    dropout: 0.1
+    # Fusion
+    use_multi_stream: true
+
+  # EEG Spectrogram Encoder (optional)
+  eeg_spec_encoder:
+    type: "efficientnet"
+    efficientnet_name: "efficientnet_b0"
+    pretrained: true
+
+  # Fusion Module (Adaptive Gated Fusion)
+  fusion:
+    type: "adaptive_gated"  # adaptive_gated, gated, simple_concat
+    hidden_dim: 256
+    num_heads: 8
+    dropout: 0.1
+    use_quality_estimation: true
+    use_cross_attention: true
+    use_anti_collapse: true
+    collapse_threshold: 0.5
+
+  # Contrastive Head
+  use_contrastive: true
+  contrastive_dim: 128
+  contrastive_temperature: 0.07
+
+  # Classification Head
+  classifier_hidden: [512, 256]
+  classifier_dropout: 0.3
+
+# ============== Training Configuration ==============
+training:
+  # Basic settings
+  seed: 42
+  device: "cuda"
+  num_workers: 8
+  pin_memory: true
+
+  # Training strategy
+  strategy: "two_stage"  # full, two_stage
+
+  # Two-stage settings
+  two_stage:
+    stage1_epochs: 5
+    stage2_epochs: 20
+    high_conf_threshold: 0.7
+
+  # Full training settings
+  full:
+    epochs: 30
+
+  # Early stopping
+  early_stopping:
+    patience: 7
+    min_delta: 0.0001
+
+  # Batch size
+  batch_size: 32
+  gradient_accumulation_steps: 2
+  effective_batch_size: 64  # batch_size * gradient_accumulation_steps
+
+  # Mixed precision
+  use_amp: true
+
+  # Gradient clipping
+  max_grad_norm: 1.0
+
+  # Logging
+  log_interval: 100
+  save_interval: 5
+
+# ============== Optimizer Configuration ==============
+optimizer:
+  name: "adamw"
+  lr: 1.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.999]
+  eps: 1.0e-8
+
+  # Layer-wise learning rate decay (for pretrained backbones)
+  use_llrd: true
+  llrd_rate: 0.95
+
+# ============== Scheduler Configuration ==============
+scheduler:
+  name: "cosine_warmup"  # cosine_warmup, step, reduce_on_plateau
+
+  # Warmup
+  warmup_epochs: 2
+  warmup_lr_init: 1.0e-6
+
+  # Cosine
+  min_lr: 1.0e-6
+
+  # Step
+  step_size: 10
+  gamma: 0.1
+
+# ============== Loss Configuration ==============
+loss:
+  type: "hms"  # hms, kl, focal
+
+  # Loss weights
+  kl_weight: 1.0
+  contrastive_weight: 0.1
+  cross_modal_weight: 0.05      # 跨模态对比学习权重【新增】
+  soft_label_weight: 0.05       # 软标签对比学习权重【新增】
+  collapse_weight: 0.01
+
+  # Options
+  use_kl: true
+  use_contrastive: true
+  use_cross_modal: true         # 跨模态对比学习【新增2025 SOTA】
+  use_soft_label_contrastive: true  # 软标签对比学习【新增2025 SOTA】
+  use_collapse: true
+  use_label_smoothing: false
+
+  # Label smoothing
+  smoothing: 0.1
+
+  # Contrastive
+  temperature: 0.07
+
+# ============== Augmentation Configuration ==============
+augmentation:
+  # EEG augmentation
+  eeg:
+    enable: true
+    time_shift_prob: 0.3
+    time_shift_max: 50
+    add_noise_prob: 0.3
+    noise_std: 0.1
+    channel_dropout_prob: 0.2
+    channel_dropout_ratio: 0.1
+    time_mask_prob: 0.2
+    time_mask_ratio: 0.1
+
+  # Spectrogram augmentation
+  spec:
+    enable: true
+    horizontal_flip_prob: 0.5
+    freq_dropout_prob: 0.2
+    freq_dropout_width: 10
+    time_dropout_prob: 0.2
+    time_dropout_width: 20
+
+  # Mixup
+  mixup:
+    enable: true
+    alpha: 0.4
+    prob: 0.5
+
+  # CutMix
+  cutmix:
+    enable: false
+    alpha: 1.0
+    prob: 0.3
+
+# ============== Inference Configuration ==============
+inference:
+  # TTA (Test Time Augmentation)
+  use_tta: true
+  n_tta: 3  # Original + H-flip spec + T-flip EEG
+
+  # Ensemble
+  use_ensemble: false
+  ensemble_weights: null  # Auto-weight by validation score
+  model_paths: []
+
+  # Output
+  output_dir: "outputs"
+  save_predictions: true
+
+# ============== Experiment Tracking ==============
+experiment:
+  name: "hms_eegmamba_cmfvit"
+  project: "hms-classification"
+  tags: ["eegmamba", "cmfvit", "two-stage", "2025-sota"]
+
+  # Directories
+  output_dir: "outputs"
+  checkpoint_dir: "checkpoints"
+  log_dir: "logs"
+
+  # Wandb (optional)
+  use_wandb: false
+  wandb_entity: null
